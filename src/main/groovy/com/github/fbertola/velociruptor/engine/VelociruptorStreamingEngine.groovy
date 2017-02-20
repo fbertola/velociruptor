@@ -19,11 +19,11 @@ import static java.util.concurrent.TimeUnit.SECONDS
 @Slf4j
 class VelociruptorStreamingEngine implements Closeable {
 
-    final Plug plug
-    final ExecutorService executor
-    final AtomicBoolean orderStop
-    final List<EventProcessorsPipeline> pipelines;
-    final ExceptionHandler<Event> exceptionHandler
+    private final Plug plug
+    private final ExecutorService executor
+    private final AtomicBoolean orderStop
+    private final List<EventProcessorsPipeline> pipelines;
+    private final ExceptionHandler<Event> exceptionHandler
 
     int docLogInterval = 1000
     int waitForWorkersSleepTime = 10

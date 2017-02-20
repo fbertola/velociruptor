@@ -14,12 +14,11 @@ import java.util.concurrent.ExecutorService
 @Slf4j
 class EventProcessorsPipelineWorker {
 
-    final EventProcessorsPipeline pipeline
-    final WorkerPool<Event> workersPool
-
-    final RingBuffer<Event> ringBuffer
-    final ExecutorService executor
-    final ExceptionHandler<Event> exceptionHandler
+    private final EventProcessorsPipeline pipeline
+    private final WorkerPool<Event> workersPool
+    private final RingBuffer<Event> ringBuffer
+    private final ExecutorService executor
+    private final ExceptionHandler<Event> exceptionHandler
 
     EventProcessorsPipelineWorker(
             @NonNull EventProcessorsPipeline pipeline,
@@ -35,21 +34,25 @@ class EventProcessorsPipelineWorker {
     }
 
     void stop() {
-        log.info "Draining ring-buffer for pipeline '{}'", pipeline.name
+        def pipelineName = pipeline.name
+
+        log.info "Draining ring-buffer for pipeline '{}'", pipelineName
         workersPool.drainAndHalt()
 
-        log.info "Closing pipeline '{}'", pipeline.name
+        log.info "Closing pipeline '{}'", pipelineName
         pipeline.close()
     }
 
     void start() {
-        log.info "Initializing pipeline '{}'", pipeline.name
+        def pipelineName = pipeline.name
+
+        log.info "Initializing pipeline '{}'", pipelineName
         pipeline.initialize()
 
-        log.info "Starting pipeline '{}'", pipeline.name
+        log.info "Starting pipeline '{}'", pipelineName
         workersPool.start(executor)
 
-        log.info "Started pipeline '{}'", pipeline.name
+        log.info "Started pipeline '{}'", pipelineName
     }
 
     private def createWorkerPool() {
@@ -66,7 +69,6 @@ class EventProcessorsPipelineWorker {
                 ringBuffer.newBarrier(),
                 exceptionHandler,
                 workers as SimpleEventWorkHandler[])
-
 
         ringBuffer.addGatingSequences(workersPool.workerSequences)
 

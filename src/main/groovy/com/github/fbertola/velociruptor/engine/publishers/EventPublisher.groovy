@@ -6,6 +6,7 @@ import com.github.fbertola.velociruptor.processing.Plug
 import com.lmax.disruptor.RingBuffer
 import groovy.util.logging.Slf4j
 import lombok.NonNull
+import lombok.experimental.Accessors
 
 import static com.codahale.metrics.MetricRegistry.name
 import static com.github.fbertola.velociruptor.utils.MetricsUtils.METRICS
@@ -13,12 +14,12 @@ import static com.github.fbertola.velociruptor.utils.MetricsUtils.METRICS
 @Slf4j
 class EventPublisher {
 
-    final Plug plug
-    final Meter publishMeter
-    final RingBuffer<Event> ringBuffer
+    private final Plug plug
+    private final Meter publishMeter
+    private final RingBuffer<Event> ringBuffer
 
-    boolean stop
-    boolean pause
+    private boolean stop
+    private boolean pause
 
     int docLogInterval = 1000
 

@@ -4,17 +4,19 @@ import com.codahale.metrics.Meter
 import com.codahale.metrics.MetricRegistry
 import com.github.fbertola.velociruptor.processing.CompositeEventProcessor
 import com.github.fbertola.velociruptor.processing.EventProcessor
-import com.github.fbertola.velociruptor.utils.MetricsUtils
 import groovy.util.logging.Slf4j
+
+import static com.github.fbertola.velociruptor.utils.MetricsUtils.METRICS
 
 @Slf4j
 class EventProcessorsPipeline<T> implements AutoCloseable {
 
     final String name
-    final Meter processed
     final int ringBufferSize
     final int concurrentWorkers
-    final CompositeEventProcessor<T> compositeProcessors;
+
+    private final Meter processed
+    private final CompositeEventProcessor<T> compositeProcessors;
 
     EventProcessorsPipeline(
             String name,
@@ -25,7 +27,7 @@ class EventProcessorsPipeline<T> implements AutoCloseable {
         this.ringBufferSize = ringBufferSize
         this.concurrentWorkers = concurrentWorkers;
         this.compositeProcessors = new CompositeEventProcessor()
-        this.processed = MetricsUtils.METRICS.meter(MetricRegistry.name(getClass(), "processed"))
+        this.processed = METRICS.meter(MetricRegistry.name(getClass(), "processed"))
 
     }
 
