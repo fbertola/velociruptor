@@ -16,7 +16,7 @@ class CompositeEventProcessor<T> implements EventProcessor<T> {
 
     @Override
     void process(T object) {
-        processors.forEach { p -> p?.accept(object) ?: p.process(object) }
+        processors.forEach { p -> if (p.accept(object)) p.process(object) }
     }
 
     @Override

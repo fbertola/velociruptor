@@ -39,8 +39,10 @@ class BasicExceptionHandler implements ExceptionHandler<Event> {
             }
 
             def payload = event.payload
-            eventProcessor.accept(payload) ?: eventProcessor.process(payload)
 
+            if (eventProcessor.accept(payload)) {
+                eventProcessor.process(payload)
+            }
         } catch (Exception e) {
             log.error "Unable to handle exception", e
         }
