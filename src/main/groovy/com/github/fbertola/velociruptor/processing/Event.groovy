@@ -8,9 +8,13 @@ class Event<T> {
 
     T payload
 
+    Event(T payload = null) {
+        this.payload = payload
+    }
+
     @Override
     String toString() {
-        payload.toString()
+        payload?.toString()
     }
 
 }

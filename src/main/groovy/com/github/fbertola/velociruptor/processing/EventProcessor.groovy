@@ -17,4 +17,9 @@ trait EventProcessor<T> {
         return true;
     }
 
+    @Override
+    String toString() {
+        getClass().name
+    }
+
 }
