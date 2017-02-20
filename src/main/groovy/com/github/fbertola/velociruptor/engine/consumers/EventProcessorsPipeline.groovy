@@ -16,7 +16,7 @@ class EventProcessorsPipeline<T> implements AutoCloseable {
     final int concurrentWorkers
     final CompositeEventProcessor<T> compositeProcessors;
 
-    public EventProcessorsPipeline(
+    EventProcessorsPipeline(
             String name,
             int ringBufferSize,
             int concurrentWorkers

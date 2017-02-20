@@ -7,13 +7,13 @@ trait EventProcessor<T> {
 
     void initialize() {}
 
-    void process(T object) {}
+    abstract void process(T object)
 
     void close() {
         log.info "Closing {}", getClass()
     }
 
-    public boolean accept(T object) {
+    boolean accept(T object) {
         return true;
     }
 

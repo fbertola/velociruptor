@@ -21,7 +21,7 @@ class EventProcessorsPipelineWorker {
     final ExecutorService executor
     final ExceptionHandler<Event> exceptionHandler
 
-    public EventProcessorsPipelineWorker(
+    EventProcessorsPipelineWorker(
             @NonNull EventProcessorsPipeline pipeline,
             @NonNull ExceptionHandler<Event> exceptionHandler,
             @NonNull ExecutorService executor
@@ -34,7 +34,7 @@ class EventProcessorsPipelineWorker {
         workersPool = createWorkerPool()
     }
 
-    public void stop() {
+    void stop() {
         log.info "Draining ring-buffer for pipeline '{}'", pipeline.name
         workersPool.drainAndHalt()
 
@@ -42,7 +42,7 @@ class EventProcessorsPipelineWorker {
         pipeline.close()
     }
 
-    public void start() {
+    void start() {
         log.info "Initializing pipeline '{}'", pipeline.name
         pipeline.initialize()
 

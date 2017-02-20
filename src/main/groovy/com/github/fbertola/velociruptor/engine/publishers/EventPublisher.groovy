@@ -3,12 +3,12 @@ package com.github.fbertola.velociruptor.engine.publishers
 import com.codahale.metrics.Meter
 import com.github.fbertola.velociruptor.processing.Event
 import com.github.fbertola.velociruptor.processing.Plug
-import com.github.fbertola.velociruptor.utils.MetricsUtils
 import com.lmax.disruptor.RingBuffer
 import groovy.util.logging.Slf4j
 import lombok.NonNull
 
 import static com.codahale.metrics.MetricRegistry.name
+import static com.github.fbertola.velociruptor.utils.MetricsUtils.METRICS
 
 @Slf4j
 class EventPublisher {
@@ -22,18 +22,18 @@ class EventPublisher {
 
     int docLogInterval = 1000
 
-    public EventPublisher(
+    EventPublisher(
             @NonNull Plug plug,
             @NonNull RingBuffer<Event> ringBuffer) {
         this.plug = plug
         this.ringBuffer = ringBuffer
-        this.publishMeter = MetricsUtils.METRICS.meter(name(getClass(), EventPublisher.name))
+        this.publishMeter = METRICS.meter(name(getClass(), EventPublisher.name))
 
         stop = false
         pause = false
     }
 
-    public void start() throws Exception {
+    void start() throws Exception {
         log.info "Publisher started, switching on the plug"
         plug.on()
 
@@ -54,24 +54,24 @@ class EventPublisher {
         plug.off()
     }
 
-    public void pause() {
+    void pause() {
         log.info "Pausing the publisher"
         pause = true
     }
 
-    public synchronized void resume() {
+    synchronized void resume() {
         log.info "Resuming the publisher"
         pause = false
         notify()
     }
 
-    public void stop() {
+    void stop() {
         log.info "Stopping the publisher"
         pause = false
         stop = true
     }
 
-    public boolean isDone() {
+    boolean isDone() {
         stop || plug.hasNext()
     }
 

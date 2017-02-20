@@ -9,12 +9,12 @@ public class SimpleEventWorkHandler implements WorkHandler<Event> {
 
     final EventProcessorsPipeline pipeline
 
-    public SimpleEventWorkHandler(@NonNull EventProcessorsPipeline pipeline) {
+    SimpleEventWorkHandler(@NonNull EventProcessorsPipeline pipeline) {
         this.pipeline = pipeline
     }
 
     @Override
-    public void onEvent(Event event) throws Exception {
+    void onEvent(Event event) throws Exception {
         pipeline.process(event.payload)
     }
 

@@ -5,7 +5,7 @@ class CompositeEventProcessor<T> implements EventProcessor<T> {
 
     final List<EventProcessor<T>> processors
 
-    public CompositeEventProcessor() {
+    CompositeEventProcessor() {
         processors = []
     }
 

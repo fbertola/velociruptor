@@ -13,7 +13,7 @@ class EventProcessorsPipelineWorkers {
 
     private final List<EventProcessorsPipelineWorker> workers = []
 
-    public EventProcessorsPipelineWorkers(
+    EventProcessorsPipelineWorkers(
             @NonNull List<EventProcessorsPipeline> pipelines,
             @NonNull ExecutorService executor,
             @NonNull ExceptionHandler<Event> exceptionHandler) {
@@ -28,15 +28,15 @@ class EventProcessorsPipelineWorkers {
         }
     }
 
-    public void stop() {
+    void stop() {
         workers*.stop()
     }
 
-    public void start() {
+    void start() {
         workers*.start()
     }
 
-    public def getRingBuffer() {
+    def getRingBuffer() {
         return workers[0].ringBuffer
     }
 }
