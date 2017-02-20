@@ -8,4 +8,9 @@ class Event<T> {
 
     T payload
 
+    @Override
+    String toString() {
+        payload.toString()
+    }
+
 }
