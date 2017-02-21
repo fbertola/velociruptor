@@ -1,5 +1,19 @@
+dist: trusty
+sudo: required
+
 language: groovy
+
+addons:
+  sonarqube:
+    token:
+      secure: 14GygYSCEyr94elY21ZdGbHwvn/K4RmJbU65A/sH0cOKFtG5dy/f7q5U3cVcSGlLayk7Z9v8XS3XoAeDVCCO15EbBnqfom2T7BIT0oPgUC5xHT4Aa2kRj39leRUahtfcP3UeDDLNQhXMLBd0aohDRH97VcuHp65w8hXizCz686ljFkctvX1wrKRiV7qCapyYIudv0mzYNXD7yqOXh5CiRBxgMe06feZ1VLA5jMpEQyymG5K9ycCWrWsh0bzidPXiEBFV6nkCVaGp1vlBqTIgiDIWFvNtngFUm6w3T+45f2jtRpeY6cktqNDnHYn7JTqBuR+VjA8ji/3emKU9UC7Y7TSlLZChlxOA7Ihqkdz/wkRHmpg9ZHQm8plkSXILvdB1q/AxIPSf8z74qh3u5lTmCslAOobzw3zcY5O8MelCg6g0p2jT/P3jdAUeGqoviDwkwoIojIM1AYL+69P66YmO9BIsrsuSyH9gepCYCQmRrSUkgr/4Q596Koqtaf9czHOLx6wcE3oAkEarpx6AyVOQvAF1wQal0elyCrivUgRGRQCGWW5Jz1t51AVI30ijk2Me3AtGfyzfI1iecedaMwF5ZzJKSere+8LWjAIJ0gwlr55Jk3iMHe65yWhhiXuvXItO6uuPqAF3ZGkxj0n9YlaucLLHPcUWOYNz5pokC5JDoPQ=
 
 jdk:
   - oraclejdk8
 
+script:
+  - sonar-scanner
+
+cache:
+  directories:
+    - $HOME/.sonar/cache
