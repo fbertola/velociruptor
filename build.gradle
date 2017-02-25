@@ -1,11 +1,26 @@
-group 'com.github.fbertola'
-version '1.0-SNAPSHOT'
+plugins {
+    id 'groovy'
+    id 'java'
+    id "jacoco"
+    id "org.sonarqube" version "2.2.1"
+}
 
-apply plugin: 'groovy'
-apply plugin: 'java'
-apply plugin: "jacoco"
+sonarqube {
+    def sonarSecureLogin = findProperty("sonarLogin") ?: System.getenv("SONAR_LOGIN")
 
-sourceCompatibility = 1.8
+    properties {
+        property "sonar.login", sonarSecureLogin
+        property "sonar.host.url", "https://sonarqube.com"
+        property "sonar.projectName", "Velociruptor"
+        property "sonar.projectKey", "org.github.fbertola.velociruptor"
+        property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/test.exec"
+    }
+}
+
+allprojects {
+    group 'com.github.fbertola'
+    version '1.0-SNAPSHOT'
+}
 
 repositories {
     mavenCentral()
