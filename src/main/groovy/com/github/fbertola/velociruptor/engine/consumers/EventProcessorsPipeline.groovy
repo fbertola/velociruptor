@@ -4,32 +4,21 @@ import com.codahale.metrics.Meter
 import com.codahale.metrics.MetricRegistry
 import com.github.fbertola.velociruptor.processing.CompositeEventProcessor
 import com.github.fbertola.velociruptor.processing.EventProcessor
+import groovy.transform.Immutable
 import groovy.util.logging.Slf4j
 
 import static com.github.fbertola.velociruptor.utils.MetricsUtils.METRICS
 
 @Slf4j
+@Immutable
 class EventProcessorsPipeline<T> implements AutoCloseable {
 
-    final String name
-    final int ringBufferSize
-    final int concurrentWorkers
+    int concurrentWorkers = 1
+    int ringBufferSize = 1024
+    String name = "unnamed pipeline"
 
-    private final Meter processed
-    private final CompositeEventProcessor<T> compositeProcessors;
-
-    EventProcessorsPipeline(
-            String name,
-            int ringBufferSize,
-            int concurrentWorkers
-    ) {
-        this.name = name;
-        this.ringBufferSize = ringBufferSize
-        this.concurrentWorkers = concurrentWorkers;
-        this.compositeProcessors = new CompositeEventProcessor()
-        this.processed = METRICS.meter(MetricRegistry.name(getClass(), "processed"))
-
-    }
+    private final Meter processed = METRICS.meter(MetricRegistry.name(getClass(), "processed"))
+    private final CompositeEventProcessor<T> compositeProcessors = new CompositeEventProcessor<T>()
 
     void initialize() {
         log.info "Initializing pipeline '{}'", this.name
@@ -46,7 +35,7 @@ class EventProcessorsPipeline<T> implements AutoCloseable {
         compositeProcessors.close()
     }
 
-    def add(EventProcessor<T> processor) {
+    EventProcessorsPipeline<T> add(EventProcessor<T> processor) {
         compositeProcessors.processors << processor
         this
     }

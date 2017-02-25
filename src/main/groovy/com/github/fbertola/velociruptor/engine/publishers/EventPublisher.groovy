@@ -6,10 +6,13 @@ import com.github.fbertola.velociruptor.processing.Plug
 import com.lmax.disruptor.RingBuffer
 import groovy.util.logging.Slf4j
 import lombok.NonNull
-import lombok.experimental.Accessors
+
+import java.util.concurrent.Future
+import java.util.concurrent.atomic.AtomicBoolean
 
 import static com.codahale.metrics.MetricRegistry.name
 import static com.github.fbertola.velociruptor.utils.MetricsUtils.METRICS
+import static java.util.concurrent.Executors.newSingleThreadExecutor
 
 @Slf4j
 class EventPublisher {
@@ -18,8 +21,10 @@ class EventPublisher {
     private final Meter publishMeter
     private final RingBuffer<Event> ringBuffer
 
-    private boolean stop
-    private boolean pause
+    private final AtomicBoolean stop
+    private final AtomicBoolean pause
+
+    private Future<?> future;
 
     int docLogInterval = 1000
 
@@ -29,71 +34,83 @@ class EventPublisher {
         this.plug = plug
         this.ringBuffer = ringBuffer
         this.publishMeter = METRICS.meter(name(getClass(), EventPublisher.name))
-
-        stop = false
-        pause = false
+        this.stop = new AtomicBoolean(false)
+        this.pause = new AtomicBoolean(false)
     }
 
     void start() throws Exception {
-        log.info "Publisher started, switching on the plug"
-        plug.on()
-
-        while (!isDone()) {
-            if (pause) {
-                synchronized (this) {
-                    try {
-                        wait();
-                    } catch (InterruptedException ignore) {
-                    }
-                }
-            } else {
-                publish(plug.next())
-            }
-        }
-
-        log.info "Publisher finished, switching off the plug"
-        plug.off()
+        future = newSingleThreadExecutor().submit(new InternalEventPublisher())
     }
 
     void pause() {
         log.info "Pausing the publisher"
-        pause = true
+        pause.set(true)
     }
 
-    synchronized void resume() {
+    void resume() {
         log.info "Resuming the publisher"
-        pause = false
-        notify()
+        pause.set(false)
     }
 
     void stop() {
         log.info "Stopping the publisher"
-        pause = false
-        stop = true
+        pause.set(false)
+        stop.set(true)
     }
 
     boolean isDone() {
-        stop || plug.hasNext()
+        future.isDone()
     }
 
-    private void publish(def payload) {
-        final def seq = ringBuffer.next();
 
-        try {
-            final Event eventFromRing = ringBuffer.get(seq)
-            eventFromRing.payload = payload
-        } finally {
-            ringBuffer.publish(seq)
-            publishMeter.mark()
+    private class InternalEventPublisher implements Runnable {
 
-            if (checkpoint(publishMeter.count)) {
-                log.info "Published: {}/{}", publishMeter.count, plug.expectedSize
+        private final def monitor = new Object()
+
+        void run() throws Exception {
+            log.info "Publisher started, switching on the plug"
+            plug.on()
+
+            while (!isDone()) {
+                if (pause.get()) {
+                    synchronized (monitor) {
+                        try {
+                            wait();
+                        } catch (InterruptedException ignore) {
+                        }
+                    }
+                } else {
+                    publish(plug.next())
+                }
+            }
+
+            log.info "Publisher finished, switching off the plug"
+            plug.off()
+        }
+
+        private def isDone() {
+            stop.get() || !plug.hasNext()
+        }
+
+        private void publish(def payload) {
+            final def seq = ringBuffer.next();
+
+            try {
+                final Event eventFromRing = ringBuffer.get(seq)
+                eventFromRing.payload = payload
+            } finally {
+                ringBuffer.publish(seq)
+                publishMeter.mark()
+
+                if (checkpoint(publishMeter.count)) {
+                    log.info "Published: {}/{}", publishMeter.count, plug.expectedSize
+                }
             }
         }
-    }
 
-    private def checkpoint(long currentIndex) {
-        currentIndex % docLogInterval == 0l
+        private def checkpoint(long currentIndex) {
+            currentIndex % docLogInterval == 0l
+        }
     }
 
 }

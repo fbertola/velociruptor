@@ -40,7 +40,7 @@ class BasicExceptionHandler implements ExceptionHandler<Event> {
 
             def payload = event.payload
 
-            if (eventProcessor.accept(payload)) {
+            if (eventProcessor.accepts(payload)) {
                 eventProcessor.process(payload)
             }
         } catch (Exception e) {

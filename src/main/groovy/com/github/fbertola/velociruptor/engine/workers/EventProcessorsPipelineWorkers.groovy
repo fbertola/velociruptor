@@ -2,7 +2,9 @@ package com.github.fbertola.velociruptor.engine.workers
 
 import com.github.fbertola.velociruptor.engine.consumers.EventProcessorsPipeline
 import com.github.fbertola.velociruptor.processing.Event
+import com.lmax.disruptor.BlockingWaitStrategy
 import com.lmax.disruptor.ExceptionHandler
+import com.lmax.disruptor.RingBuffer
 import groovy.util.logging.Slf4j
 import lombok.NonNull
 
@@ -13,6 +15,8 @@ class EventProcessorsPipelineWorkers {
 
     private final List<EventProcessorsPipelineWorker> workers = []
 
+    private RingBuffer<Event> firstRingBuffer = null
+
     EventProcessorsPipelineWorkers(
             @NonNull List<EventProcessorsPipeline> pipelines,
             @NonNull ExecutorService executor,
@@ -20,11 +24,22 @@ class EventProcessorsPipelineWorkers {
 
         log.info "Creating pipeline workers"
 
+        RingBuffer<Event> previousRingBuffer = null
+
+        // wiring the 'in' and 'out' RingBuffers in reverse order
         pipelines.reverse().forEach { pipeline ->
             log.info "Creating worker for pipeline '{}'", pipeline.name
-            def worker = new EventProcessorsPipelineWorker(pipeline, exceptionHandler, executor)
+            def currentRingBuffer = createRingBuffer(pipeline.ringBufferSize)
+            def worker = new EventProcessorsPipelineWorker(
+                    pipeline,
+                    exceptionHandler,
+                    executor,
+                    currentRingBuffer,
+                    previousRingBuffer)
 
-            workers.add 0, worker // reverse order
+            workers.add(0, worker) // reversed order
+            firstRingBuffer = currentRingBuffer
+            previousRingBuffer = currentRingBuffer
         }
     }
 
@@ -37,6 +52,13 @@ class EventProcessorsPipelineWorkers {
     }
 
     def getRingBuffer() {
-        return workers[0].ringBuffer
+        firstRingBuffer
+    }
+
+    private static def createRingBuffer(int size) {
+        RingBuffer.createMultiProducer(
+                new SimpleEventFactory(),
+                size,
+                new BlockingWaitStrategy())
     }
 }

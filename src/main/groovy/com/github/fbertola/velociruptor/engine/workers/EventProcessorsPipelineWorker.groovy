@@ -14,22 +14,26 @@ import java.util.concurrent.ExecutorService
 @Slf4j
 class EventProcessorsPipelineWorker {
 
+    private final RingBuffer<Event> intake
+    private final RingBuffer<Event> outtake
     private final EventProcessorsPipeline pipeline
     private final WorkerPool<Event> workersPool
-    private final RingBuffer<Event> ringBuffer
     private final ExecutorService executor
     private final ExceptionHandler<Event> exceptionHandler
 
     EventProcessorsPipelineWorker(
             @NonNull EventProcessorsPipeline pipeline,
             @NonNull ExceptionHandler<Event> exceptionHandler,
-            @NonNull ExecutorService executor
+            @NonNull ExecutorService executor,
+            @NonNull RingBuffer<Event> intake,
+            RingBuffer<Event> outtake
     ) {
         this.pipeline = pipeline
         this.executor = executor
         this.exceptionHandler = exceptionHandler
+        this.intake = intake
+        this.outtake = outtake
 
-        ringBuffer = createRingBuffer()
         workersPool = createWorkerPool()
     }
 
@@ -61,25 +65,20 @@ class EventProcessorsPipelineWorker {
                 pipeline.name,
                 pipeline.ringBufferSize
 
-        def threads = pipeline.getConcurrentWorkers()
-        def workers = (1..threads).collect({ new SimpleEventWorkHandler(pipeline) }).toArray()
+        def threads = pipeline.concurrentWorkers
+        def workers = (1..threads).collect({
+            new SimpleEventWorkHandler(pipeline, outtake)
+        }).toArray()
 
         def workersPool = new WorkerPool<Event>(
-                ringBuffer,
-                ringBuffer.newBarrier(),
+                intake,
+                intake.newBarrier(),
                 exceptionHandler,
                 workers as SimpleEventWorkHandler[])
 
-        ringBuffer.addGatingSequences(workersPool.workerSequences)
+        intake.addGatingSequences(workersPool.workerSequences)
 
         return workersPool
-    }
-
-    private def createRingBuffer() {
-        RingBuffer.createMultiProducer(
-                new SimpleEventFactory(),
-                pipeline.ringBufferSize,
-                new BlockingWaitStrategy())
     }
 
 }

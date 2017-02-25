@@ -13,8 +13,8 @@ trait EventProcessor<T> {
         log.info "Closing {}", getClass()
     }
 
-    boolean accept(T object) {
-        return true;
+    boolean accepts(T object) {
+        return object == object;
     }
 
     @Override
