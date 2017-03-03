@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutorService
 
 import static java.util.concurrent.Executors.newCachedThreadPool
 
-class VelociruptorStreamingEngineTest extends Specification {
+class VelociruptorEngineTest extends Specification {
 
     @Shared
     private ExecutorService executor;
@@ -25,25 +25,22 @@ class VelociruptorStreamingEngineTest extends Specification {
         def processor1 = new EventMarkerProcessor()
         def processor2 = new EventMarkerProcessor()
 
-        def pipeline1 = new EventProcessorsPipeline<Map>(
-                name: "pipeline1",
-                concurrentWorkers: 4,
-                ringBufferSize: 512)
+        def pipeline1 = new EventProcessorsPipeline<Map>()
+                .setName("pipeline1")
+                .setConcurrentWorkers(4)
+                .setRingBufferSize(512)
                 .add(processor1)
 
-        def pipeline2 = new EventProcessorsPipeline<Map>(
-                name: "pipeline2",
-                concurrentWorkers: 2,
-                ringBufferSize: 256)
+        def pipeline2 = new EventProcessorsPipeline<Map>()
+                .setName("pipeline2")
+                .setConcurrentWorkers(2)
+                .setRingBufferSize(256)
                 .add(processor2)
 
-        def engine = new VelociruptorStreamingEngine(
-                plug: plug,
-                executor: executor,
-                waitForWorkersSleepTime: 1)
+        def engine = new VelociruptorEngine(plug, executor)
+                .setWaitForWorkersSleepTime(1)
                 .addPipeline(pipeline1)
                 .addPipeline(pipeline2)
-
 
         when: "the engine runs"
         engine.process()

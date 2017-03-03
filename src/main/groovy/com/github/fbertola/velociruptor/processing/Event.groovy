@@ -2,11 +2,9 @@ package com.github.fbertola.velociruptor.processing
 
 class Event<T> {
 
-    static final def WAIT = new Event()
-    static final def NULL = new Event()
-    static final def ERROR = new Event()
+    static final def END = new Event(["__last_item__", "true"])
 
-    T payload
+    private T payload
 
     Event(T payload = null) {
         this.payload = payload
@@ -15,6 +13,19 @@ class Event<T> {
     @Override
     String toString() {
         payload?.toString()
+    }
+
+    T getPayload() {
+        payload
+    }
+
+    Event<T> setPayload(T payload) {
+        this.payload = payload
+        this
+    }
+
+    boolean isLastEvent() {
+        this.payload.is END.payload
     }
 
 }

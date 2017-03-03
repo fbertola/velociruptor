@@ -3,12 +3,12 @@ package com.github.fbertola.velociruptor.processing
 class DoNothingEventProcessor<T> implements EventProcessor<T> {
 
     void process(T object) {
-        void // Do nothing
+        void //NOSONAR
     }
 
     @Override
     boolean accepts(T object) {
-        return false
+        false //NOSONAR
     }
 
 }

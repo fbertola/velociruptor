@@ -6,7 +6,6 @@ import com.lmax.disruptor.BlockingWaitStrategy
 import com.lmax.disruptor.ExceptionHandler
 import com.lmax.disruptor.RingBuffer
 import groovy.util.logging.Slf4j
-import lombok.NonNull
 
 import java.util.concurrent.ExecutorService
 
@@ -18,9 +17,9 @@ class EventProcessorsPipelineWorkers {
     private RingBuffer<Event> firstRingBuffer = null
 
     EventProcessorsPipelineWorkers(
-            @NonNull List<EventProcessorsPipeline> pipelines,
-            @NonNull ExecutorService executor,
-            @NonNull ExceptionHandler<Event> exceptionHandler) {
+            List<EventProcessorsPipeline> pipelines,
+            ExecutorService executor,
+            ExceptionHandler<Event> exceptionHandler) {
 
         log.info "Creating pipeline workers"
 

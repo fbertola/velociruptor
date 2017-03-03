@@ -8,38 +8,44 @@ import com.github.fbertola.velociruptor.processing.DoNothingEventProcessor
 import com.github.fbertola.velociruptor.processing.Event
 import com.github.fbertola.velociruptor.processing.Plug
 import com.lmax.disruptor.ExceptionHandler
-import groovy.transform.Immutable
 import groovy.util.logging.Slf4j
-import lombok.NonNull
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicBoolean
 
-import static java.util.concurrent.Executors.newCachedThreadPool
 import static java.util.concurrent.TimeUnit.SECONDS
 
 @Slf4j
-@Immutable
-class VelociruptorStreamingEngine implements Closeable {
+class VelociruptorEngine implements Closeable {
 
-    @NonNull
-    private Plug plug
-
-    @NonNull
-    private ExecutorService executor = newCachedThreadPool()
-
-    @NonNull
-    private ExceptionHandler<Event> exceptionHandler =
-            new BasicExceptionHandler(new DoNothingEventProcessor())
+    private final Plug plug
+    private final AtomicBoolean orderStop
+    private final ExecutorService executor
+    private final List<EventProcessorsPipeline> pipelines
+    private final ExceptionHandler<Event> exceptionHandler
 
     private int docLogInterval = 1000
     private int waitForWorkersSleepTime = 10
 
-    private final List<EventProcessorsPipeline> pipelines = [];
-    private final AtomicBoolean orderStop = new AtomicBoolean(false)
+    VelociruptorEngine(
+            Plug plug,
+            ExecutorService executor) {
+        this(plug, executor, new BasicExceptionHandler(new DoNothingEventProcessor()))
+    }
 
+    VelociruptorEngine(
+            Plug plug,
+            ExecutorService executor,
+            ExceptionHandler<Event> exceptionHandler) {
+        this.plug = plug
+        this.executor = executor
+        this.exceptionHandler = exceptionHandler
 
-    VelociruptorStreamingEngine addPipeline(EventProcessorsPipeline pipeline) {
+        this.pipelines = []
+        this.orderStop = new AtomicBoolean(false)
+    }
+
+    VelociruptorEngine addPipeline(EventProcessorsPipeline pipeline) {
         pipelines.add(pipeline)
         this
     }
@@ -74,6 +80,28 @@ class VelociruptorStreamingEngine implements Closeable {
     void close() {
         log.info "Close called, stopping the engine"
         orderStop.set(true);
+    }
+
+    int getDocLogInterval() {
+        docLogInterval
+    }
+
+    VelociruptorEngine setDocLogInterval(int docLogInterval) {
+        assert docLogInterval > 0
+
+        this.docLogInterval = docLogInterval
+        this
+    }
+
+    int getWaitForWorkersSleepTime() {
+        waitForWorkersSleepTime
+    }
+
+    VelociruptorEngine setWaitForWorkersSleepTime(int waitForWorkersSleepTime) {
+        assert waitForWorkersSleepTime > 0
+
+        this.waitForWorkersSleepTime = waitForWorkersSleepTime
+        this
     }
 
     private def isTimeToStop(EventPublisher publisher) {

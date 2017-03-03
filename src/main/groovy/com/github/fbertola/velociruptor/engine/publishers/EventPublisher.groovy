@@ -5,7 +5,6 @@ import com.github.fbertola.velociruptor.processing.Event
 import com.github.fbertola.velociruptor.processing.Plug
 import com.lmax.disruptor.RingBuffer
 import groovy.util.logging.Slf4j
-import lombok.NonNull
 
 import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicBoolean
@@ -16,6 +15,8 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor
 
 @Slf4j
 class EventPublisher {
+
+    private static final def monitor = new Object()
 
     private final Plug plug
     private final Meter publishMeter
@@ -29,8 +30,8 @@ class EventPublisher {
     int docLogInterval = 1000
 
     EventPublisher(
-            @NonNull Plug plug,
-            @NonNull RingBuffer<Event> ringBuffer) {
+            Plug plug,
+            RingBuffer<Event> ringBuffer) {
         this.plug = plug
         this.ringBuffer = ringBuffer
         this.publishMeter = METRICS.meter(name(getClass(), EventPublisher.name))
@@ -50,6 +51,7 @@ class EventPublisher {
     void resume() {
         log.info "Resuming the publisher"
         pause.set(false)
+        monitor.notify()
     }
 
     void stop() {
@@ -64,8 +66,6 @@ class EventPublisher {
 
 
     private class InternalEventPublisher implements Runnable {
-
-        private final def monitor = new Object()
 
         void run() throws Exception {
             log.info "Publisher started, switching on the plug"
@@ -84,6 +84,7 @@ class EventPublisher {
                 }
             }
 
+
             log.info "Publisher finished, switching off the plug"
             plug.off()
         }
@@ -92,12 +93,11 @@ class EventPublisher {
             stop.get() || !plug.hasNext()
         }
 
-        private void publish(def payload) {
+        private void publish(payload) {
             final def seq = ringBuffer.next();
 
             try {
-                final Event eventFromRing = ringBuffer.get(seq)
-                eventFromRing.payload = payload
+                ringBuffer.get(seq).payload = payload
             } finally {
                 ringBuffer.publish(seq)
                 publishMeter.mark()

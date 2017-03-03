@@ -14,7 +14,7 @@ trait EventProcessor<T> {
     }
 
     boolean accepts(T object) {
-        return object == object;
+        object == object;
     }
 
     @Override

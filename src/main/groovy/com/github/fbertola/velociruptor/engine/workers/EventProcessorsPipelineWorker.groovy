@@ -2,12 +2,10 @@ package com.github.fbertola.velociruptor.engine.workers
 
 import com.github.fbertola.velociruptor.engine.consumers.EventProcessorsPipeline
 import com.github.fbertola.velociruptor.processing.Event
-import com.lmax.disruptor.BlockingWaitStrategy
 import com.lmax.disruptor.ExceptionHandler
 import com.lmax.disruptor.RingBuffer
 import com.lmax.disruptor.WorkerPool
 import groovy.util.logging.Slf4j
-import lombok.NonNull
 
 import java.util.concurrent.ExecutorService
 
@@ -22,10 +20,10 @@ class EventProcessorsPipelineWorker {
     private final ExceptionHandler<Event> exceptionHandler
 
     EventProcessorsPipelineWorker(
-            @NonNull EventProcessorsPipeline pipeline,
-            @NonNull ExceptionHandler<Event> exceptionHandler,
-            @NonNull ExecutorService executor,
-            @NonNull RingBuffer<Event> intake,
+            EventProcessorsPipeline pipeline,
+            ExceptionHandler<Event> exceptionHandler,
+            ExecutorService executor,
+            RingBuffer<Event> intake,
             RingBuffer<Event> outtake
     ) {
         this.pipeline = pipeline
@@ -67,14 +65,14 @@ class EventProcessorsPipelineWorker {
 
         def threads = pipeline.concurrentWorkers
         def workers = (1..threads).collect({
-            new SimpleEventWorkHandler(pipeline, outtake)
+            new CachedEventWorkHandler(pipeline, outtake)
         }).toArray()
 
         def workersPool = new WorkerPool<Event>(
                 intake,
                 intake.newBarrier(),
                 exceptionHandler,
-                workers as SimpleEventWorkHandler[])
+                workers as CachedEventWorkHandler[])
 
         intake.addGatingSequences(workersPool.workerSequences)
 

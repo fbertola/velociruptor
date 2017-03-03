@@ -37,7 +37,7 @@ class EventMarkerProcessor implements EventProcessor<Map> {
 
     @Override
     void close() {
-        log.info "Closing {}", getClass().name
+        log.info "Closing '{}'", getClass().name
     }
 
     long getProcessed() {

@@ -4,7 +4,6 @@ import com.github.fbertola.velociruptor.processing.Event
 import com.github.fbertola.velociruptor.processing.EventProcessor
 import com.lmax.disruptor.ExceptionHandler
 import groovy.util.logging.Slf4j
-import lombok.NonNull
 
 import static com.codahale.metrics.MetricRegistry.name
 import static com.github.fbertola.velociruptor.utils.MetricsUtils.METRICS
@@ -14,10 +13,10 @@ class BasicExceptionHandler implements ExceptionHandler<Event> {
 
     private final EventProcessor eventProcessor;
 
-    int maxNumberOfExceptionsLogged;
-    int intervalOfExceptionLogged;
+    private int maxNumberOfExceptionsLogged;
+    private int intervalOfExceptionLogged;
 
-    public BasicExceptionHandler(@NonNull EventProcessor eventProcessor) {
+    BasicExceptionHandler(EventProcessor eventProcessor) {
         log.info "Exception event processor is '{}'", eventProcessor
 
         this.eventProcessor = eventProcessor
@@ -50,12 +49,30 @@ class BasicExceptionHandler implements ExceptionHandler<Event> {
     }
 
     @Override
-    public void handleOnStartException(Throwable ex) {
+    void handleOnStartException(Throwable ex) {
         log.error "Exception during onStart()", ex
     }
 
     @Override
-    public void handleOnShutdownException(Throwable ex) {
+    void handleOnShutdownException(Throwable ex) {
         log.error "Exception during onShutdown()", ex
+    }
+
+    int getMaxNumberOfExceptionsLogged() {
+        maxNumberOfExceptionsLogged
+    }
+
+    BasicExceptionHandler setMaxNumberOfExceptionsLogged(int maxNumberOfExceptionsLogged) {
+        this.maxNumberOfExceptionsLogged = maxNumberOfExceptionsLogged
+        this
+    }
+
+    int getIntervalOfExceptionLogged() {
+        intervalOfExceptionLogged
+    }
+
+    BasicExceptionHandler setIntervalOfExceptionLogged(int intervalOfExceptionLogged) {
+        this.intervalOfExceptionLogged = intervalOfExceptionLogged
+        this
     }
 }

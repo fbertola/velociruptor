@@ -32,6 +32,7 @@ class ProgrammablePlug implements Plug<Map> {
 
     @Override
     long getExpectedSize() {
-        return numberOfObjects
+        numberOfObjects
     }
+
 }
